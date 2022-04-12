@@ -156,26 +156,7 @@ where
 		let runtime_api = self.runtime_api.runtime_api();
 		let block_id = BlockId::Hash(block_hash);
 
-		let api_version =
-			match runtime_api.api_version::<dyn CollectCollationInfo<Block>>(&block_id)? {
-				Some(version) => version,
-				None => {
-					tracing::error!(
-						target: LOG_TARGET,
-						"Could not fetch `CollectCollationInfo` runtime api version."
-					);
-					return Ok(None)
-				},
-			};
-
-		let collation_info = if api_version < 2 {
-			#[allow(deprecated)]
-			runtime_api
-				.collect_collation_info_before_version_2(&block_id)?
-				.into_latest(header.encode().into())
-		} else {
-			runtime_api.collect_collation_info(&block_id, header)?
-		};
+		let collation_info = runtime_api.collect_collation_info(&block_id, header)?;
 
 		Ok(Some(collation_info))
 	}
